@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>اختبار موارد دول حوض النيل المائية والأرضية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1e;
+      --card: #111827;
+      --card2: #1a2438;
+      --blue: #3b82f6;
+      --blue-dark: #1d4ed8;
+      --teal: #14b8a6;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #1e3a5f;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== BACKGROUND ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20,184,166,0.10) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    /* ===== HEADER ===== */
+    header { text-align: center; padding: 48px 0 32px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35);
+      border-radius: 999px; padding: 6px 18px; font-size: 13px; color: var(--blue);
+      margin-bottom: 20px; letter-spacing: 0.5px;
+    }
+    .badge svg { width: 15px; height: 15px; }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; line-height: 1.3;
+      background: linear-gradient(135deg, #60a5fa 0%, #14b8a6 50%, #f59e0b 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    header p { color: var(--muted); font-size: 15px; }
+
+    /* ===== PROGRESS ===== */
+    .progress-wrap { margin-bottom: 28px; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ===== SCORE CARD ===== */
+    .score-strip {
+      display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .score-box {
+      flex: 1; min-width: 100px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 18px; text-align: center;
+    }
+    .score-box .val { font-size: 1.7rem; font-weight: 900; line-height: 1; }
+    .score-box .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .score-box.correct .val { color: var(--green); }
+    .score-box.wrong  .val { color: var(--red); }
+    .score-box.remain .val { color: var(--blue); }
+    .score-box.pct    .val { color: var(--gold); }
+
+    /* ===== QUESTION CARD ===== */
+    .q-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.35s ease both;
+      position: relative; overflow: hidden;
+    }
+    .q-card::before {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 4px; height: 100%;
+      background: linear-gradient(to bottom, var(--blue), var(--teal));
+      border-radius: 0 20px 20px 0;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(18px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .q-num {
+      font-size: 12px; font-weight: 700; color: var(--blue);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .q-text {
+      font-size: 17px; font-weight: 600; line-height: 1.7;
+      color: var(--text); margin-bottom: 22px;
+    }
+
+    /* ===== OPTIONS ===== */
+    .options { display: grid; gap: 10px; }
+    .opt {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card2); border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 14px 18px;
+      cursor: pointer; transition: all 0.2s ease;
+      user-select: none; font-size: 15px; font-weight: 500;
+    }
+    .opt:hover:not(.disabled) {
+      border-color: var(--blue); background: rgba(59,130,246,0.12);
+      transform: translateX(-3px);
+    }
+    .opt-letter {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 13px; font-weight: 800;
+      background: rgba(255,255,255,0.07); color: var(--muted);
+      transition: all 0.2s;
+    }
+    .opt.correct {
+      border-color: var(--green); background: rgba(34,197,94,0.12);
+      animation: pulse-green 0.4s ease;
+    }
+    .opt.correct .opt-letter { background: var(--green); color: #fff; }
+    .opt.wrong {
+      border-color: var(--red); background: rgba(239,68,68,0.12);
+      animation: shake 0.35s ease;
+    }
+    .opt.wrong .opt-letter { background: var(--red); color: #fff; }
+    .opt.show-correct { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.06); }
+    .opt.show-correct .opt-letter { background: rgba(34,197,94,0.3); color: var(--green); }
+    .opt.disabled { cursor: default; }
+
+    @keyframes pulse-green {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.01); }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ===== FEEDBACK ===== */
+    .feedback {
+      margin-top: 16px; padding: 14px 18px; border-radius: 12px;
+      font-size: 14px; line-height: 1.7; display: none;
+    }
+    .feedback.show { display: block; animation: fadeUp 0.3s ease; }
+    .feedback.ok  { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+    .feedback.err { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+
+    /* ===== NAV ===== */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 28px; border-radius: 12px; font-family: 'Cairo', sans-serif;
+      font-size: 15px; font-weight: 700; border: none; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff; box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.45); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.05); color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ===== RESULTS ===== */
+    .result-screen { display: none; text-align: center; padding: 40px 20px; }
+    .result-screen.show { display: block; animation: fadeUp 0.5s ease; }
+    .result-circle {
+      width: 160px; height: 160px; border-radius: 50%; margin: 0 auto 28px;
+      display: grid; place-items: center;
+      background: conic-gradient(var(--teal) 0%, var(--blue) 100%);
+      box-shadow: 0 0 60px rgba(20,184,166,0.3);
+      position: relative;
+    }
+    .result-circle::before {
+      content: ''; position: absolute; inset: 8px;
+      background: var(--card); border-radius: 50%;
+    }
+    .result-pct {
+      position: relative; z-index: 1;
+      font-size: 2.2rem; font-weight: 900;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .result-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
+    .result-subtitle { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
+    .result-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 32px;
+    }
+    .res-box {
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 10px;
+    }
+    .res-box .rv { font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; }
+    .res-box .rl { font-size: 12px; color: var(--muted); }
+    .res-box.g .rv { color: var(--green); }
+    .res-box.r .rv { color: var(--red); }
+    .res-box.b .rv { color: var(--blue); }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      color: #fff; font-size: 16px; padding: 15px 40px; border-radius: 14px;
+      border: none; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700;
+      box-shadow: 0 4px 30px rgba(20,184,166,0.35);
+      transition: all 0.2s;
+    }
+    .btn-restart:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(20,184,166,0.5); }
+
+    /* ===== DOTS ===== */
+    .dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 28px; }
+    .dot {
+      width: 28px; height: 28px; border-radius: 8px; font-size: 11px; font-weight: 700;
+      display: grid; place-items: center; transition: all 0.3s;
+      background: rgba(255,255,255,0.06); color: var(--muted); border: 1.5px solid transparent;
+    }
+    .dot.active { border-color: var(--blue); color: var(--blue); }
+    .dot.answered-c { background: rgba(34,197,94,0.2); color: var(--green); border-color: rgba(34,197,94,0.4); }
+    .dot.answered-w { background: rgba(239,68,68,0.2); color: var(--red); border-color: rgba(239,68,68,0.4); }
+
+    @media (max-width: 600px) {
+      .q-card { padding: 20px 16px 18px; }
+      .q-text { font-size: 15px; }
+      .opt { padding: 12px 14px; font-size: 14px; }
+      .result-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14l-4-4 1.41-1.41L11 13.17l6.59-6.59L19 8l-8 8z"/></svg>
+      اختبار تفاعلي
+    </div>
+    <h1>موارد دول حوض النيل المائية والأرضية</h1>
+    <p>الموقع الجغرافي والظروف الهيدرولوجية &mdash; 20 سؤالاً متعدد الخيارات</p>
+  </header>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen">
+    <!-- Score strip -->
+    <div class="score-strip">
+      <div class="score-box correct"><div class="val" id="sCorrect">0</div><div class="lbl">✔ إجابات صحيحة</div></div>
+      <div class="score-box wrong"><div class="val" id="sWrong">0</div><div class="lbl">✘ إجابات خاطئة</div></div>
+      <div class="score-box remain"><div class="val" id="sRemain">20</div><div class="lbl">◎ متبقية</div></div>
+      <div class="score-box pct"><div class="val" id="sPct">0%</div><div class="lbl">★ نسبة النجاح</div></div>
+    </div>
+
+    <!-- Dots navigator -->
+    <div class="dots" id="dots"></div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="pLabel">السؤال 1 من 20</span>
+        <span id="pPct">5%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="pBar" style="width:5%"></div></div>
+    </div>
+
+    <!-- Question -->
+    <div class="q-card" id="qCard">
+      <div class="q-num" id="qNum">السؤال 1</div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="opts"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- Nav -->
+    <div class="nav">
+      <button class="btn btn-ghost" id="btnPrev" onclick="navigate(-1)" disabled>
+        ← السابق
+      </button>
+      <button class="btn btn-primary" id="btnNext" onclick="navigate(1)" disabled>
+        التالي →
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-circle">
+      <div class="result-pct" id="rPct">0%</div>
+    </div>
+    <div class="result-title" id="rTitle">نتيجتك النهائية</div>
+    <div class="result-subtitle" id="rSub"></div>
+    <div class="result-grid">
+      <div class="res-box g"><div class="rv" id="rC">0</div><div class="rl">إجابات صحيحة</div></div>
+      <div class="res-box r"><div class="rv" id="rW">0</div><div class="rl">إجابات خاطئة</div></div>
+      <div class="res-box b"><div class="rv" id="rT">20</div><div class="rl">إجمالي الأسئلة</div></div>
+    </div>
+    <button class="btn-restart" onclick="restart()">🔄 إعادة الاختبار</button>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "كم عدد الدول التي يمتد عبرها حوض نهر النيل؟",
+    opts: ["ثماني دول", "تسع دول", "عشر دول", "اثنتا عشرة دولة"],
+    ans: 2,
+    exp: "يمتد حوض نهر النيل عبر عشر دول هي: كينيا وتنزانيا وأوغندا ورواندا وبورندي والكونغو الديمقراطية وإرتريا وإثيوبيا والسودان ومصر."
+  },
+  {
+    q: "ما المساحة الإجمالية لحوض نهر النيل؟",
+    opts: ["1.5 مليون كم²", "2.5 مليون كم²", "3.1 مليون كم²", "4.2 مليون كم²"],
+    ans: 2,
+    exp: "يغطي حوض نهر النيل مساحة تبلغ 3.1 مليون كيلومتر مربع، تمثل نحو 10% من مساحة القارة الأفريقية."
+  },
+  {
+    q: "ما نسبة الأراضي الحشائش والمراعي الطبيعية في حوض نهر النيل؟",
+    opts: ["10%", "30%", "42%", "65%"],
+    ans: 2,
+    exp: "تمثل الأراضي الحشائش والمراعي الطبيعية 42% من إجمالي مساحة حوض النيل."
+  },
+  {
+    q: "ما عدد سكان دول حوض النيل حسب تعداد عام 2008؟",
+    opts: ["278.5 مليون نسمة", "378.5 مليون نسمة", "468.5 مليون نسمة", "528 مليون نسمة"],
+    ans: 1,
+    exp: "بلغ عدد سكان دول حوض النيل طبقاً لتعداد عام 2008 نحو 378.5 مليون نسمة."
+  },
+  {
+    q: "ما العدد المتوقع لسكان دول حوض النيل عام 2025؟",
+    opts: ["400 مليون نسمة", "480 مليون نسمة", "568.3 مليون نسمة", "650 مليون نسمة"],
+    ans: 2,
+    exp: "من المتوقع أن يصل عدد سكان دول حوض النيل عام 2025 إلى نحو 568.3 مليون نسمة."
+  },
+  {
+    q: "ما المنسوب الأقصى لوادي الأخدود الأفريقي العظيم؟",
+    opts: ["3200 متر", "4000 متر", "4800 متر", "5100 متر"],
+    ans: 3,
+    exp: "يصل أقصى منسوب في وادي الرفت إلى 5100 متر، بينما لا يتجاوز في منتصف فرعيه في منطقة هضاب البحيرات الاستوائية 1400 متر."
+  },
+  {
+    q: "ما الرافد الأهم لإمداد بحيرة فيكتوريا بالمياه العذبة؟",
+    opts: ["نهر السوباط", "نهر كاجيرا", "نهر السمليكي", "النيل الأزرق"],
+    ans: 1,
+    exp: "يُعدّ نهر كاجيرا الرافد الأهم للمياه العذبة الذي يُغذّي بحيرة فيكتوريا، وينبع من السلاسل الجبلية التي تغطي بوروندي ورواندا وتنزانيا وأوغندا."
+  },
+  {
+    q: "ما مساحة بحيرة فيكتوريا؟",
+    opts: ["300 ألف كم²", "600 ألف كم²", "900 ألف كم²", "مليون كم²"],
+    ans: 1,
+    exp: "مساحة بحيرة فيكتوريا تبلغ 600 ألف كيلومتر مربع، وهي أكبر بحيرة في القارة الأفريقية."
+  },
+  {
+    q: "ما منسوب بحيرة فيكتوريا فوق مستوى سطح البحر؟",
+    opts: ["634 متراً", "915 متراً", "1000 متر", "1134 متراً"],
+    ans: 3,
+    exp: "يبلغ منسوب بحيرة فيكتوريا 1134 متراً فوق مستوى سطح البحر."
+  },
+  {
+    q: "في أي عام أُنشئ سد أوين على بحيرة فيكتوريا؟",
+    opts: ["1935", "1952", "1960", "1970"],
+    ans: 1,
+    exp: "أُنشئ سد أوين على بحيرة فيكتوريا في الأراضي الأوغندية منذ عام 1952."
+  },
+  {
+    q: "كم تبلغ خسائر المياه السنوية في منطقة بحيرة كيوجا؟",
+    opts: ["10 مليار م³", "20 مليار م³", "30 مليار م³", "50 مليار م³"],
+    ans: 2,
+    exp: "تقدّر المنظمات المائية الدولية الفاقد من المياه العذبة في بحيرة كيوجا وما حولها بما يصل إلى 30 مليار متر مكعب سنوياً."
+  },
+  {
+    q: "ما المنسوب الذي تقع عليه بحيرة البرت (موبوتو سيسي سيكو)؟",
+    opts: ["320 متراً", "500 متراً", "617 متراً", "800 متراً"],
+    ans: 2,
+    exp: "تقع بحيرة البرت على منسوب 617 متراً عن سطح البحر، وهي البحيرة الأساسية التي ينبع منها النيل الأبيض."
+  },
+  {
+    q: "ما النهر الذي يربط بين بحيرتَي إدوارد والبرت؟",
+    opts: ["نهر كاجيرا", "نهر كافو", "نهر السمليكي", "نهر البارو"],
+    ans: 2,
+    exp: "نهر السمليكي هو الذي يربط بين بحيرتَي إدوارد والبرت على مسافة نحو 250 كيلومتر."
+  },
+  {
+    q: "ما مساحة بحيرة توركانا؟",
+    opts: ["3200 كم²", "4900 كم²", "6405 كم²", "8900 كم²"],
+    ans: 2,
+    exp: "تصل مساحة بحيرة توركانا إلى 6405 كيلومتر مربع، وتقع بالكامل تقريباً في الأراضي الكينية."
+  },
+  {
+    q: "ما الكمية التي كان من المقرر إنقاذها في المرحلة الأولى لمشروع قناة جونجلي؟",
+    opts: ["2 مليار م³", "4 مليار م³", "8 مليار م³", "18 مليار م³"],
+    ans: 1,
+    exp: "كان الهدف في المرحلة الأولى لقناة جونجلي إنقاذ 4 مليار م³، ثم 8 مليارات في المرحلة الثانية، ثم 18 ملياراً مستقبلاً."
+  },
+  {
+    q: "من أين ينبع النيل الأزرق؟",
+    opts: ["بحيرة توركانا", "بحيرة تانا", "بحيرة فيكتوريا", "جبال راووند"],
+    ans: 1,
+    exp: "تُعدّ بحيرة تانا المنبع الرئيس للنيل الأزرق، وتقع في الشمال الغربي من الهضبة الوسطى للمرتفعات الإثيوبية على ارتفاع 1800 متر."
+  },
+  {
+    q: "ما مساحة بحيرة تانا؟",
+    opts: ["1200 كم²", "2500 كم²", "3673 كم²", "5100 كم²"],
+    ans: 2,
+    exp: "تبلغ المساحة السطحية لبحيرة تانا نحو 3673 كيلومتر مربع، وعمق مياهها نحو 14 متراً."
+  },
+  {
+    q: "أين يلتقي النيل الأبيض بالنيل الأزرق؟",
+    opts: ["أسوان", "القاهرة", "الخرطوم", "بورسودان"],
+    ans: 2,
+    exp: "يبدأ النيل الموحد عند التقاء النيل الأبيض القادم من هضاب البحيرات الاستوائية مع النيل الأزرق القادم من الهضبة الإثيوبية عند مدينة الخرطوم."
+  },
+  {
+    q: "كم يبلغ طول النيل الموحد من مدينة أسوان حتى قناطر الدلتا؟",
+    opts: ["500 كم", "700 كم", "908 كم", "1200 كم"],
+    ans: 2,
+    exp: "يستمر النهر في السريان بسرعة 1-2 متر/ثانية على طول 908 كيلومتر من أسوان حتى قناطر الدلتا."
+  },
+  {
+    q: "في أي عام بُني خزان أسوان الأول؟",
+    opts: ["1882", "1902", "1920", "1934"],
+    ans: 1,
+    exp: "بُني خزان أسوان الأول عام 1902 عند الشلال الأول في أسوان، ثم أُعيد تعليته مرتين عامَي 1912 و1934."
+  }
+];
+
+let current = 0;
+let answered = new Array(20).fill(null); // null | 'correct' | 'wrong'
+let selectedOpt = new Array(20).fill(null);
+
+function buildDots() {
+  const c = document.getElementById('dots');
+  c.innerHTML = '';
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '') +
+      (answered[i] === 'correct' ? ' answered-c' : '') +
+      (answered[i] === 'wrong' ? ' answered-w' : '');
+    d.textContent = i + 1;
+    d.onclick = () => goTo(i);
+    c.appendChild(d);
+  });
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('qNum').textContent = `السؤال ${current + 1}`;
+  document.getElementById('qText').textContent = q.q;
+
+  // Restart card animation
+  const card = document.getElementById('qCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+
+  const optsDiv = document.getElementById('opts');
+  optsDiv.innerHTML = '';
+  const letters = ['أ', 'ب', 'ج', 'د'];
+
+  q.opts.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.id = `opt-${i}`;
+    div.innerHTML = `<div class="opt-letter">${letters[i]}</div><span>${opt}</span>`;
+
+    if (answered[current] !== null) {
+      div.classList.add('disabled');
+      if (i === q.ans) div.classList.add(answered[current] === 'correct' || selectedOpt[current] !== i ? 'show-correct' : 'correct');
+      if (i === selectedOpt[current] && i !== q.ans) div.classList.add('wrong');
+      if (i === selectedOpt[current] && i === q.ans) div.classList.add('correct');
+    } else {
+      div.onclick = () => selectOpt(i);
+    }
+    optsDiv.appendChild(div);
+  });
+
+  // Feedback
+  const fb = document.getElementById('feedback');
+  if (answered[current] !== null) {
+    fb.className = 'feedback show ' + (answered[current] === 'correct' ? 'ok' : 'err');
+    fb.innerHTML = (answered[current] === 'correct' ? '✅ إجابة صحيحة! ' : '❌ إجابة خاطئة. ') + q.exp;
+  } else {
+    fb.className = 'feedback';
+    fb.textContent = '';
+  }
+
+  // Progress
+  const pct = Math.round(((current + 1) / 20) * 100);
+  document.getElementById('pLabel').textContent = `السؤال ${current + 1} من 20`;
+  document.getElementById('pPct').textContent = pct + '%';
+  document.getElementById('pBar').style.width = pct + '%';
+
+  // Nav buttons
+  document.getElementById('btnPrev').disabled = current === 0;
+  const isLast = current === 19;
+  const allDone = answered.every(a => a !== null);
+  const btn = document.getElementById('btnNext');
+  if (isLast && allDone) {
+    btn.textContent = '🎯 عرض النتيجة';
+    btn.disabled = false;
+    btn.onclick = showResults;
+  } else {
+    btn.textContent = 'التالي →';
+    btn.onclick = () => navigate(1);
+    btn.disabled = answered[current] === null;
+  }
+
+  buildDots();
+  updateScore();
+}
+
+function selectOpt(i) {
+  if (answered[current] !== null) return;
+  const q = questions[current];
+  selectedOpt[current] = i;
+  const isCorrect = i === q.ans;
+  answered[current] = isCorrect ? 'correct' : 'wrong';
+
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  opts[i].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) opts[q.ans].classList.add('show-correct');
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'ok' : 'err');
+  fb.innerHTML = (isCorrect ? '✅ إجابة صحيحة! ' : '❌ إجابة خاطئة. ') + q.exp;
+
+  updateScore();
+  buildDots();
+
+  const isLast = current === 19;
+  const allDone = answered.every(a => a !== null);
+  const btn = document.getElementById('btnNext');
+  if (isLast && allDone) {
+    btn.textContent = '🎯 عرض النتيجة';
+    btn.disabled = false;
+    btn.onclick = showResults;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+function navigate(dir) {
+  const next = current + dir;
+  if (next < 0 || next >= 20) return;
+  goTo(next);
+}
+
+function goTo(i) {
+  current = i;
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateScore() {
+  const correct = answered.filter(a => a === 'correct').length;
+  const wrong = answered.filter(a => a === 'wrong').length;
+  const remain = answered.filter(a => a === null).length;
+  const pct = correct + wrong > 0 ? Math.round((correct / (correct + wrong)) * 100) : 0;
+  document.getElementById('sCorrect').textContent = correct;
+  document.getElementById('sWrong').textContent = wrong;
+  document.getElementById('sRemain').textContent = remain;
+  document.getElementById('sPct').textContent = pct + '%';
+}
+
+function showResults() {
+  const correct = answered.filter(a => a === 'correct').length;
+  const wrong = answered.filter(a => a === 'wrong').length;
+  const pct = Math.round((correct / 20) * 100);
+
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.classList.add('show');
+
+  document.getElementById('rPct').textContent = pct + '%';
+  document.getElementById('rC').textContent = correct;
+  document.getElementById('rW').textContent = wrong;
+  document.getElementById('rT').textContent = 20;
+
+  let title, sub;
+  if (pct >= 90) { title = '🏆 ممتاز جداً!'; sub = 'أنت متمكن تماماً من موضوع موارد حوض النيل!'; }
+  else if (pct >= 75) { title = '🌟 جيد جداً!'; sub = 'مستوى رائع! راجع بعض التفاصيل الدقيقة.'; }
+  else if (pct >= 60) { title = '👍 جيد'; sub = 'أداء مقبول. يُنصح بمراجعة الدرس مجدداً.'; }
+  else if (pct >= 50) { title = '📖 مقبول'; sub = 'احتاج إلى مراجعة أعمق للمادة العلمية.'; }
+  else { title = '💪 يحتاج تحسين'; sub = 'لا تيأس! أعد قراءة المادة ثم حاول مجدداً.'; }
+
+  document.getElementById('rTitle').textContent = title;
+  document.getElementById('rSub').textContent = sub;
+
+  // Animate circle
+  const circle = document.querySelector('.result-circle');
+  circle.style.background = `conic-gradient(var(--teal) ${pct}%, rgba(255,255,255,0.05) ${pct}%)`;
+}
+
+function restart() {
+  current = 0;
+  answered = new Array(20).fill(null);
+  selectedOpt = new Array(20).fill(null);
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+renderQuestion();
+</script>
+</body>
+</html>
